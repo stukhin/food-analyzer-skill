@@ -6,6 +6,37 @@ Format: `## [version] — YYYY-MM-DD`
 
 ---
 
+## [2.0.0] — 2026-05-09
+
+### Breaking changes — major architectural rewrite
+
+The skill is now **condition-agnostic** by default. Hardcoded threshold tables for 8 specific conditions have been removed. Instead, the skill researches authoritative sources at first onboarding and derives a personalized threshold setup, which is then stored locally.
+
+### Removed
+- All 8 condition-specific threshold tables (gallbladder, gastritis, T2 diabetes, hypertension, dyslipidemia, weight loss, muscle gain, general healthy eating) from the public `SKILL.md`.
+- The condition-specific Adaptive Scoring hierarchy table.
+- All gallbladder-flavored examples.
+
+### Added
+- **Source Map** — explicit mapping from condition keywords (gallbladder, gastritis, GERD, diabetes, hypertension, dyslipidemia, kidney, IBS, gout, NAFLD, weight loss, muscle gain, healthy eating, etc.) to preferred guideline sources, used at onboarding.
+- **Research-based onboarding** — three-step flow: ask user → WebFetch from preferred sources → propose Primary/Secondary parameters with non-overlapping bands → user confirms or refines → save profile.
+- **Memory boundary rule** — the skill explicitly does NOT use Claude's broader auto-memory to determine the user's condition. The only canonical state is `~/.claude/skills/food-analyzer/profile.md`.
+- **Profile schema upgraded** — profile now stores derived thresholds (Primary parameters with bands, Secondary parameters, Contextual modifiers) and the sources used at onboarding, not just a condition label.
+- **Three new generic examples** covering different conditions and modes:
+  - Gastritis acute flare → STRICT redirect
+  - T2 diabetes → PRAGMATIC menu comparison with explicit suboptimality flag
+  - General healthy eating → correction flow showing portion-vs-composition handling
+- Expanded source list: KDIGO/NKF, AASLD, ACR/EULAR, Monash FODMAP, ISSN added.
+
+### Changed
+- Lifestyle modifiers section made condition-agnostic (no gallbladder-specific phrasing).
+- Disclaimer cleanup — full version no longer references gallbladder-specific symptoms.
+
+### Migration
+v1.0.0 users with an existing `profile.md` should re-run onboarding to get the new derived-thresholds schema. Old `profile.md` files (with just `condition:` labels) still load but won't have explicit threshold bands — the skill will run a refresh prompt.
+
+---
+
 ## [1.0.0] — 2026-05-07
 
 ### Added

@@ -6,13 +6,14 @@ A Claude skill that analyzes food photos, menu screenshots, and dish description
 
 ## What it does
 
+- **Personalizes at onboarding** — describes your condition or goal in your own words; the skill researches authoritative guidelines (EASL, ADA, AHA, ACG, DASH/NHLBI, ESC/EAS, KDIGO, ACR, AASLD, Monash FODMAP, DGA, etc.), proposes priority parameters with non-overlapping value bands, you confirm or refine
 - **Analyzes food photos** — identifies ingredients, estimates КБЖУ / macros as ranges with confidence indicator
 - **Reads menu screenshots** — multi-dish comparison table with visual fat bars
-- **Scores each dish** on a 1–10 scale with a green/yellow/red stoplight, looked up in deterministic threshold tables
-- **Adapts to your condition** — gallbladder, gastritis, diabetes, hypertension, dyslipidemia, weight loss, muscle gain, general healthy eating
+- **Scores each dish** on a 1–10 scale with a green/yellow/red stoplight, looked up in your personally-derived threshold tables
 - **Tags every health claim** with an evidence level (🔵 Guideline / 🟣 Evidence / ⚪ Clinical / ⚫ Estimate) — no fake authority
 - **Tracks daily budget** (opt-in) — per-day macro budget with verdicts that shift in context
-- **Persists your profile** — onboarding runs once; reads back on every future session (Claude Code)
+- **Persists your profile** — onboarding runs once; reads back on every future session (Claude Code). Profile is local — never committed to git.
+- **Memory-boundary safe** — does NOT pull condition info from Claude's broader auto-memory; works only on explicitly-confirmed onboarding data
 - **Accepts corrections** — tell it what it got wrong, it recalculates honestly
 
 ---
@@ -78,18 +79,23 @@ Parameters scored per dish (depends on your condition):
 
 ## Supported conditions
 
-| Goal / condition | Primary concerns |
-|-----------|-----------------|
-| Gallbladder / biliary sludge | Total fat per meal, saturated fat |
-| Gastritis / peptic ulcer | Acidity, spice |
-| Type 2 diabetes | Carbs, added sugar |
-| Hypertension | Sodium |
-| Dyslipidemia / high LDL | Saturated fat, trans fat |
-| Weight loss | Calories, fat density |
-| Muscle gain | Protein |
-| General healthy eating | Saturated fat, added sugar, sodium |
+The skill is condition-agnostic — there are no hardcoded condition tables in `SKILL.md`. At first onboarding, you describe your condition or goal in your own words and the skill matches it to a row in its **Source Map** (in `SKILL.md`):
 
-If your condition isn't listed (e.g. IBS, FODMAP, kidney CKD, gout, GERD), the skill derives 3–5 priority parameters from the relevant guideline (Mayo Clinic, EFSA, WHO) and tells you upfront which ones it will weigh heaviest.
+- Gallbladder / biliary / gallstones → EASL Gallstone Guidelines, Mayo Clinic, Stol №5
+- Gastritis / peptic ulcer / GERD → ACG, Mayo Clinic, Stol №1
+- Diabetes (T1, T2, glycemic control) → ADA Standards of Care, Mayo Clinic
+- Hypertension → DASH / NHLBI, AHA
+- Dyslipidemia / high cholesterol / high LDL → ESC/EAS Dyslipidaemia, AHA
+- Kidney / CKD → KDIGO, NKF, Mayo Clinic
+- IBS → Monash FODMAP, ACG IBS, NICE
+- Gout → ACR, EULAR, Mayo Clinic
+- NAFLD / fatty liver → AASLD, EASL NAFLD, Mayo Clinic
+- Weight loss → DGA, Mediterranean, ACSM
+- Muscle gain → ISSN Sports Nutrition, ACSM
+- Healthy eating / prevention → DGA, WHO, Mediterranean
+- Anything else → Mayo Clinic + EFSA + WHO + USDA
+
+The skill then uses WebFetch to pull the current text from those sources and proposes 2–3 Primary parameters, 2–3 Secondary parameters, and 1–3 Contextual modifiers — each with non-overlapping value bands and single integer scores. You confirm or refine. The derived setup is saved to your local `profile.md`.
 
 ---
 
