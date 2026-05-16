@@ -6,15 +6,22 @@ A Claude skill that analyzes food photos, menu screenshots, and dish description
 
 ## What it does
 
-- **Personalizes at onboarding** — describes your condition or goal in your own words; the skill researches authoritative guidelines (EASL, ADA, AHA, ACG, DASH/NHLBI, ESC/EAS, KDIGO, ACR, AASLD, Monash FODMAP, DGA, etc.), proposes priority parameters with non-overlapping value bands, you confirm or refine
-- **Analyzes food photos** — identifies ingredients, estimates КБЖУ / macros as ranges with confidence indicator
-- **Reads menu screenshots** — multi-dish comparison table with visual fat bars
-- **Scores each dish** on a 1–10 scale with a green/yellow/red stoplight, looked up in your personally-derived threshold tables
-- **Tags every health claim** with an evidence level (🔵 Guideline / 🟣 Evidence / ⚪ Clinical / ⚫ Estimate) — no fake authority
-- **Tracks daily budget** (opt-in) — per-day macro budget with verdicts that shift in context
+- **Personalizes at onboarding** — four-step research-based wizard. You describe your condition or goal in your own words; the skill researches authoritative guidelines (EASL, ADA, AHA, ACG, DASH/NHLBI, ESC/EAS, KDIGO, ACR, AASLD, Monash FODMAP, DGA, etc.), proposes priority parameters with non-overlapping value bands, you confirm or refine.
+- **Handles multiple conditions** — if you have several (e.g. NAFLD + dyslipidemia), the skill asks which is the priority right now and structures Primary vs Secondary parameters accordingly.
+- **Respects religious / ethical / cultural restrictions** — halal, kosher, vegan, vegetarian, pescatarian, plus personal aversions, separate from medical avoidances.
+- **Analyzes food photos** — identifies ingredients, estimates КБЖУ / macros as ranges, with per-parameter confidence breakdown (`макро · готовка · порция`).
+- **Reads menu screenshots** — multi-dish comparison table with visual fat bars.
+- **Scores each dish** on a 1–10 scale with a green/yellow/red stoplight, looked up in your personally-derived threshold tables.
+- **Tags every health claim** with an evidence level (🔵 Guideline / 🟣 Evidence / ⚪ Clinical / ⚫ Estimate) — no fake authority.
+- **Suggests only realistic modifications** — no "ask for carbonara without cheese". If the only honest mod is "order something else", it says that.
+- **ED-safe mode** — if your history includes an eating disorder, the skill softens output (ranges, no gram-level precision, balance-focused framing) and refers to a professional on red flags.
+- **Personal calibration log** — when you say "это плохо зашло" or "хорошо после этого", the skill appends to a log. After 3+ consistent entries on the same trigger, it surfaces the pattern and offers a profile update.
+- **Tracks daily budget** (opt-in) — per-day macro budget with verdicts that shift in context.
 - **Persists your profile** — onboarding runs once; reads back on every future session (Claude Code). Profile is local — never committed to git.
-- **Memory-boundary safe** — does NOT pull condition info from Claude's broader auto-memory; works only on explicitly-confirmed onboarding data
-- **Accepts corrections** — tell it what it got wrong, it recalculates honestly
+- **Auto-backs up your profile** — every change creates a timestamped backup; last 5 retained.
+- **Staleness check** — if profile is older than 6 months, the skill asks whether to refresh.
+- **Memory-boundary safe** — does NOT pull condition info from Claude's broader auto-memory; works only on explicitly-confirmed onboarding data.
+- **Accepts corrections** — tell it what it got wrong, it recalculates honestly.
 
 ---
 

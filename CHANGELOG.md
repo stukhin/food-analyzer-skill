@@ -6,6 +6,28 @@ Format: `## [version] — YYYY-MM-DD`
 
 ---
 
+## [2.1.0] — 2026-05-09
+
+### Added (nine refinements from real-use testing)
+
+- **Anti-disorder safeguards (Honesty Rule 8)** — new `ED-safe mode` flag in the profile. Triggered at onboarding by a history-of-eating-disorder question, or surfaced in-session if the user shows obsessive macro tracking / restrictive escalation / body-shame language. Effects: numbers given as ranges instead of point values, precision dropped below 5g / 10kcal, restrictive framing replaced with balance-focused language, professional referral on red flags.
+- **Realistic-modifications rule (Honesty Rule 9)** — modifications must be things a kitchen can actually do without breaking the dish. No "no cheese in carbonara", no "skip the cream in alfredo", no "no rice in risotto". If the only honest mod is "order something else", say that.
+- **Per-parameter confidence** — replaced single `Уверенность: medium` with three-part breakdown `макро [H/M/L] · готовка [H/M/L] · порция [H/M/L]`. Each component is independent — you can have high confidence on cooking method but low on portion size.
+- **Personal calibration log** — new section in profile.md. Skill appends entries when the user volunteers post-eating feedback ("после этого было плохо", "хорошо зашло"). After 3+ consistent entries about the same trigger, skill surfaces it and offers to update profile restrictions.
+- **Religious / ethical / cultural restrictions** — onboarding now explicitly asks about dietary pattern (vegan / vegetarian / pescatarian / halal / kosher / none) and personal aversions, separate from medical avoidances. Profile schema split: `Medical / allergies`, `Dietary pattern`, `Personal aversions`.
+- **Phase priority for conflicting conditions** — new Step 1.5 in onboarding. If user names multiple conditions (NAFLD + dyslipidemia, etc.), skill asks which is the priority right now. Priority condition → Primary parameters; others contribute to Secondary.
+- **One-time onboarding disclaimer (Step 0)** — before any questions, skill shows a clear "I'm a tool, not medical advice" disclaimer and waits for acknowledgement. Replaces the previous pattern where the disclaimer only appeared on red verdicts.
+- **Profile staleness check** — on load, if profile is older than 6 months, skill asks once "освежить онбординг или работаем с текущим?" before scoring.
+- **Auto-backup before profile rewrite** — every profile change (re-onboarding, phase switch, calibration update, restriction change) creates `~/.claude/skills/food-analyzer/backups/profile.md.backup-YYYYMMDD-HHMMSS`. Last 5 backups retained, `backups/` is gitignored.
+
+### Changed
+
+- Onboarding is now four steps (Step 0 disclaimer → Step 1 questions → Step 1.5 priority pick if multi-condition → Step 2 research → Step 3 confirm).
+- Profile schema restructured (Identity / Restrictions / Sources / Derived thresholds / Personal calibration log) — old single-line Identity preserved as compatibility but new format takes precedence.
+- Example outputs in SKILL.md updated to use new confidence format and Rule 9-compliant modifications.
+
+---
+
 ## [2.0.0] — 2026-05-09
 
 ### Breaking changes — major architectural rewrite

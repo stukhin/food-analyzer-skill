@@ -99,6 +99,24 @@ When file-system tools are available (Claude Code), maintain a user profile at `
 2. If it exists → confirm contents back briefly (*"Profile loaded: [condition], [phase], [N] priority parameters. Confirm or update."*) and skip onboarding unless the user says it's stale.
 3. If it doesn't exist → run **research-based onboarding** (next section) and write the profile file at the end.
 
+### Staleness check
+
+After loading, check `Last updated`. If the profile is **older than 6 months**, before scoring anything say once:
+
+> *"Профиль обновлён [N] месяцев назад. Освежить онбординг или работаем с текущим?"*
+
+If user says refresh → run full onboarding. If keep → proceed silently.
+
+### Auto-backup
+
+**Before any rewrite** of `profile.md` (re-onboarding, phase switch, calibration update, restriction change), copy the existing file to:
+
+```
+~/.claude/skills/food-analyzer/backups/profile.md.backup-YYYYMMDD-HHMMSS
+```
+
+Keep the 5 most recent backups; delete older. The `backups/` folder is gitignored.
+
 **Profile file format:**
 
 ```
@@ -106,11 +124,17 @@ When file-system tools are available (Claude Code), maintain a user profile at `
 Last updated: YYYY-MM-DD
 
 ## Identity
-- Condition: [free text from user]
+- Condition(s): [free text from user]
+- Priority condition (if multiple): [name]
 - Phase: [acute / remission / prevention]
-- Foods to avoid (personal): [list or "none"]
 - Tracking preference: [single / daily]
+- ED-safe mode: [on / off]
 - TDEE: [kcal/day or "not specified"]
+
+## Restrictions
+- Medical / allergies: [list or "none"]
+- Dietary pattern: [vegan / vegetarian / pescatarian / halal / kosher / none]
+- Personal aversions: [list or "none"]
 
 ## Sources used at onboarding
 - [URL or citation 1]
@@ -136,9 +160,13 @@ Last updated: YYYY-MM-DD
 ### Contextual modifiers
 [Modifier 1]: ±N
 [Modifier 2]: ±N
+
+## Personal calibration log
+(append-only; each entry: YYYY-MM-DD — dish — observation)
+- ...
 ```
 
-**When the user updates** (says *"I'm in a flare now"*, *"switch to muscle gain"*, etc.) — rewrite the file with new values and today's date.
+**When the user updates** (says *"I'm in a flare now"*, *"switch to muscle gain"*, etc.) — backup current → rewrite the file with new values and today's date.
 
 In environments without file tools (Claude.ai web), run onboarding each session; do not attempt persistence.
 
@@ -146,17 +174,39 @@ In environments without file tools (Claude.ai web), run onboarding each session;
 
 ## Onboarding (when profile is missing or stale)
 
-A research-based, three-step interaction. Do not skip steps.
+A research-based, **four-step** interaction. Do not skip steps.
+
+### Step 0 — One-time disclaimer
+
+Before any questions, show this once and wait for acknowledgement:
+
+> *I'm a food-analysis tool, not medical advice. My scoring is based on published dietary guidelines — it doesn't replace your physician or dietitian. For serious conditions, consult a specialist.*
+
+Proceed only after a brief "ok / got it / понял". If the user just answers questions without acknowledging, treat that as implicit acknowledgement.
 
 ### Step 1 — Ask
 
-Ask once, in a single message:
+Ask in a single message:
 
-1. **Main goal or condition** — free text. The user describes in their own words.
-2. **Foods to avoid completely** — allergies, strict personal "no's".
-3. **Current phase** — *acute flare / postoperative / diagnostic period* (→ STRICT mode), or *stable remission / general prevention* (→ PRAGMATIC mode, default).
+1. **Main goal or condition(s)** — free text. If multiple (e.g. NAFLD + dyslipidemia, or muscle gain + low-FODMAP), list them all.
+2. **Current phase** — *acute flare / postoperative / diagnostic period* (→ STRICT mode), or *stable remission / general prevention* (→ PRAGMATIC mode, default).
+3. **Restrictions** — three sub-questions:
+   - **Medical / allergies** — foods you must avoid completely
+   - **Dietary pattern** — vegan / vegetarian / pescatarian / halal / kosher / none
+   - **Personal aversions** — anything else you don't eat
+4. **Anything in your history that should change how I report numbers?** — e.g. history of an eating disorder, periods of obsessive macro tracking, or restrictive escalation. *If yes → **ED-safe output mode** is on (ranges instead of point numbers, balance-focused framing, professional referral on red flags — see Honesty Rule 8).*
 
 Do **not** ask about portion size — it's per-dish, resolved in context.
+
+### Step 1.5 — Multiple conditions
+
+If the user named more than one condition in Q1, before research ask:
+
+> *"Какое из этих состояний приоритетное сейчас? Я возьму его для Primary параметров; остальные пойдут в Secondary."*
+
+(English: *"Which of these is your main focus right now?"*)
+
+The phase mode applies to the priority condition. Save the priority pick in profile.md → Identity → "Priority condition".
 
 ### Step 2 — Research
 
@@ -330,7 +380,7 @@ Use this **table layout** for every single-dish evaluation. Do not pad.
 
 ```
 **Блюдо:** [name]
-**Уверенность:** [low / medium / high]
+**Уверенность:** макро [H/M/L] · готовка [H/M/L] · порция [H/M/L]
 
 **Макро (диапазон):**
 - Калории: X–Y kcal
@@ -467,6 +517,8 @@ These cannot be overridden by the user.
 5. **If the user corrects ingredients**, recalculate honestly — score may go up or down.
 6. **Tag every health claim** with an evidence level (🔵 / 🟣 / ⚪ / ⚫). Untagged health claims are not allowed.
 7. **Never claim authority you do not have.** You estimate macros and look up thresholds. You do not diagnose, prescribe, or replace a physician.
+8. **Anti-disorder safeguards.** If the profile has **ED-safe mode** on, OR if the user shows signs in-session (obsessive macro tracking, restrictive escalation, calories framed as primary anxiety, body-shame language) — switch to softer output: ranges instead of single numbers, drop precision below 5g / 10kcal, avoid restrictive framing (*"avoid X"* → *"balance with Y"*), and recommend a professional if patterns intensify. Never quantify someone's intake to the gram if they're showing distress. Acute red-flag language (purging, severe restriction, suicidal ideation) → immediate referral, no scoring.
+9. **Modifications must be physically realistic.** Don't suggest *"ask for it without cheese"* for carbonara, *"skip the cream"* for alfredo, *"no rice"* for risotto, *"no sauce"* for pad thai. Modifications must be things a kitchen can actually do without breaking the dish. If the only honest modification is "order something else", say that.
 
 ---
 
@@ -478,6 +530,23 @@ If the user says *"actually there was X"* or *"the portion was smaller"*:
 2. Re-estimate macros with the new info (still as a range).
 3. Re-score; show what changed and why.
 4. Don't over-apologize — update and move on.
+
+---
+
+## Calibration Log
+
+When the user volunteers **post-eating feedback** — *"после этого было плохо"*, *"хорошо зашло"*, *"спал отлично после этого"*, *"симптомов не было"*, *"опять колет в правом боку"*, etc.:
+
+1. **Append** to `## Personal calibration log` in profile.md:
+   ```
+   - YYYY-MM-DD — [dish] — [observation: symptoms / wellbeing / neutral]
+   ```
+2. **Acknowledge briefly:** *"Записал."* (one word, no fanfare).
+3. **Do not auto-modify thresholds** based on one observation — too noisy.
+4. **After 3+ consistent entries** about the same trigger or safe pattern, surface it and suggest a profile update:
+   > *"За последнее время три раза [dish/ingredient] вызывал [symptom]. Хочешь добавить в личные ограничения?"*
+
+Backup the profile before writing (see Profile Persistence → Auto-backup).
 
 ---
 
@@ -535,7 +604,7 @@ User sends a photo of spicy Korean instant noodles with kimchi.
 
 ```
 **Блюдо:** острая лапша с кимчи
-**Уверенность:** medium
+**Уверенность:** макро M · готовка H · порция L
 
 **Макро (диапазон):**
 - Калории: 480–580 kcal
@@ -593,7 +662,7 @@ User sends a photo of pasta carbonara.
 
 ```
 **Блюдо:** pasta carbonara
-**Уверенность:** medium
+**Уверенность:** макро M · готовка M · порция L
 
 **Макро (диапазон):**
 - Калории: 580–740 kcal
@@ -615,8 +684,10 @@ User sends a photo of pasta carbonara.
 
 **Что можно изменить:**
 - Половина порции вместо целой → насыщ. жир до ~7g, цвет → 🟡.
-- Без бекона / гуанчиале → насыщ. жир до ~5g, цвет → 🟢.
-- Добавить салат → клетчатка +5g, общий profile balanced.
+- Большой салат сбоку → +5g клетчатки, баланс приёма выравнивается.
+- Если такие цифры регулярно — взять другое блюдо (тагольятелле с томатным соусом, паста с овощами на оливковом масле).
+
+*Без бекона / без сыра / без яиц — карбонара ломается, кухня так не сделает (Rule 9).*
 
 **Самое неопределённое:** количество тёртого пармезана сверху.
 
