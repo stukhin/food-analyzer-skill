@@ -6,6 +6,97 @@ Format: `## [version] — YYYY-MM-DD`
 
 ---
 
+## [3.0.0] — 2026-05-24
+
+### Major release — knowledge-base architecture
+
+The skill is no longer a single methodology file. v3 introduces a structured knowledge base under `~/.claude/skills/food-analyzer/`:
+- `SKILL.md` — methodology only, zero personal data or condition-specific numbers
+- `profile.md` — the user's personal data and derived thresholds (gitignored, local)
+- `cuisines/*.md` — modular condition-agnostic cuisine knowledge base
+- `references/_sources.md` + `references/guidelines_cache.md` — authoritative sources registry + cached guideline summaries with 90-day refresh
+- `backups/` — auto-snapshots of profile.md before any edit
+
+### Added
+
+- **Reusable evaluation heuristics** (5 categories, condition-agnostic):
+  - Healthy-sounding trap detection (Caesar / Cobb / wellness bowls / poke bowls / granola bowls)
+  - Hidden-fat source patterns (mazesoba aroma oil, mayo "special sauces", coconut milk in curries, cream sauces, deep-fried garnishes)
+  - Broth discrimination (clear vs emulsified)
+  - Cut/protein ladder (lean vs fatty cuts of the same animal)
+  - Cooking-method ladder (raw → steam → grill → bake → fry → deep-fry)
+- **At-the-table behavioral library** — structured list of modification levers with explicit notes on where each works/doesn't, plus **mandatory re-scoring delta** ("as served 4/10 🟡 → modified 7/10 🟢").
+- **Split-portion-across-time logic** — strategy + caveats (reheating realism, raw items, empty-stomach risk).
+- **Indulgence / risk-management framework** — for treats in PRAGMATIC mode: identify what's problematic, stacked risk modulators (portion / timing / personal aids / frequency / activity), red-flag combinations, lighter substitute, frequency guidance. **Explicitly disabled in STRICT mode** per Honesty Rule 11.
+- **Wellness-label skepticism** — Honesty Rule 10 + dedicated section. "Sugar-free / natural / protein / wellness / lite / clean / plant-based" never auto-raises a score.
+- **Drinks hierarchy** — 6-tier ladder, explicit distinction between coconut water (light) and coconut milk (heavy saturated fat).
+- **Quality-aware modifiers** — fat type matters as much as quantity (olive oil neutral vs cream/butter −1 vs lard −2). Sugar source matters (added vs natural vs sugar alcohols).
+- **Variable-size modifiers** — beyond ±1 contextual. Profile can declare positive bonuses (omega-3, soluble fiber, lean protein) and negative penalties (fat-shock, refined-carb load, deep-fried) with their declared sizes.
+- **Mode C — Meal Planning** (minimal skeleton in v3.0; full mechanics in v3.1).
+- **Multi-condition priority** at onboarding (Step 1.5) — when user names multiple conditions, ask which is the priority for Primary parameters.
+- **Per-aspect confidence** expanded from 3 to **4 aspects** — macro / cooking / portion / sauce-composition.
+- **Anti-patterns section** — explicit list of 12 don'ts.
+- **Honesty Rules expanded** from 9 to **12** — added Rule 10 (wellness skepticism), Rule 11 (indulgence framework PRAGMATIC-only), Rule 12 (cultural sensitivity).
+
+### Cuisine knowledge base (initial seed)
+
+- `cuisines/_template.md` — blank template for adding new cuisines
+- `cuisines/italian.md` — 14 dishes (pasta light/heavy fork, pizza, risotto, tiramisu)
+- `cuisines/japanese.md` — 16 dishes (sashimi, nigiri, ramen variants, mazesoba oil pool, tempura, gyudon)
+- `cuisines/thai.md` — 13 dishes (tom yum/tom kha fork, curries, pad thai, soft-shell crab)
+- `cuisines/mediterranean.md` — 12 dishes (Greek salad, hummus, falafel, moussaka, octopus)
+- `cuisines/american.md` — 14 dishes (burgers, fries, Caesar/Cobb traps, mac & cheese, milkshakes)
+- `cuisines/french.md` — 14 dishes (tartare, steak frites, bouillabaisse, confit, crème brûlée)
+
+Each cuisine file is **condition-agnostic** — records components, typical macros (ranges), cooking method, `modifications_possible` per dish, common variants, confidence level. The profile decides 🟢/🟡/🔴 verdicts on top of these facts.
+
+### References
+
+- `references/_sources.md` — registry of 19 authoritative bodies (EASL, AASLD, ACG, ADA, AHA, ESC/EAS, KDIGO, NKF, ACR, EULAR, NICE, Monash FODMAP, Pevzner Diets, DGA, WHO, EFSA, USDA FoodData Central, Mayo Clinic, ISSN, ACSM) with URLs and authority types.
+- `references/guidelines_cache.md` — schema + 90-day refresh logic. Ships empty; populated user-side at first onboarding via WebFetch.
+
+### Profile schema v3
+
+Restructured to support:
+- `Communication language` (auto-detected, locked for the session)
+- `Identity` — adds age range, sex, activity level (all optional)
+- `Restrictions` — three-way split (medical/allergies, dietary pattern, personal aversions) — already in v2.1, kept
+- **`Personal aids`** — NEW section for enzymes / supplements / meds taken with meals; used by indulgence framework
+- `Sources used at onboarding` — with fetch dates
+- `Derived thresholds` — now supports variable-size modifiers + quality adjustments
+- **`Phase profiles`** — NEW optional section for alternate threshold sets (acute / remission / preventive); switchable
+- `Personal calibration log` — already in v2.1, kept
+
+### Migration
+
+- On first v3 load of a v2.1-format profile, the skill detects the old format and offers a structured migration (with auto-backup). All v2.1 data preserved; new sections added empty for the user to fill briefly.
+
+### Output template changes
+
+- **Mode A** — confidence now 4-aspect, "Почему этот балл" section added, **mandatory re-scoring delta** for any 🟡/🔴 dish, "Источники применённых порогов" pointer added.
+- **Mode B** — restructured with explicit "Топ-выбор / Худшее / Что заказать" sections, fat bar rescaled to 0–70g (1 char ≈ 7g) by default, or to the profile's limiting macro if not fat.
+- **Mode C** — new minimal output template (daily/weekly plan with running totals).
+
+### Examples updated
+
+- Example 1 (gastritis STRICT) — now demonstrates 4-aspect confidence and STRICT no-modification stance
+- Example 2 (T2 diabetes menu) — now demonstrates wellness-label skepticism + "natural sugar ≠ free pass"
+- Example 3 (carbonara correction flow) — now demonstrates Rule 9 (no "without cheese"), re-scoring delta, calibration log auto-write
+- **NEW Example 4 (indulgence framework)** — user asks "can I have ice cream weekly?" with dyslipidemia profile in PRAGMATIC
+- **NEW Example 5 (healthy-sounding trap)** — "Wellness Bowl" with hidden tempura crisps + spicy mayo + imitation crab; demonstrates heuristic #1, hidden-fat sources, modification re-scoring delta
+
+### Changed
+
+- `SKILL.md` 1181 lines (was 595).
+- README updated for v3 architecture, cuisines, references, new heuristics, indulgence framework.
+
+### Breaking changes
+
+- Existing v2.1 profiles auto-migrate on first v3 load (with backup). No data loss.
+- Modifiers in profiles now support variable sizes; v2.1 profiles get sensible defaults at migration.
+
+---
+
 ## [2.1.0] — 2026-05-09
 
 ### Added (nine refinements from real-use testing)
