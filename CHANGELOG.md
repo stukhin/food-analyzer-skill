@@ -6,6 +6,38 @@ Format: `## [version] — YYYY-MM-DD`
 
 ---
 
+## [3.2.0] — 2026-05-27
+
+### Bilingual support refactor — explicit language selection + English-only documentation
+
+The skill is now explicitly bilingual with a clean separation: the methodology document (`SKILL.md`) and the public-facing `README.md` are written entirely in English; runtime output is in the language the user picks at onboarding.
+
+### Added
+
+- **Step 0.5 — Language selection** at the start of onboarding. The skill now explicitly asks *"Which language should I use for our conversation? English or Russian?"* before any intake questions. Replaces v3.0/v3.1 auto-detection. The choice is stored as `communication_language: en | ru` in `profile.md` and used for all output going forward.
+- **Foreign-content preservation rule.** Dish and menu names in any language (Japanese, Chinese, Thai, Korean, Filipino, etc.) are preserved verbatim from the user's input. Only labels, prose, verdicts, modifications, and footers are localized to `communication_language`. Source citations (EASL, ADA, USDA, Stol №5, etc.) are kept in canonical form.
+- **Localization table** in `SKILL.md`'s Communication Language section. Maps every English template label to its Russian equivalent — `**Dish:**` ↔ `**Блюдо:**`, `**Confidence:**` ↔ `**Уверенность:**`, `**Macros (range):**` ↔ `**Макро (диапазон):**`, table column headers, footer phrases, the medical disclaimer, etc. The model substitutes at runtime.
+- **Honesty Rule 14 — Language compliance is mandatory.** Use `communication_language` from `profile.md` for all output. Dish/menu names preserved verbatim. Never mid-message-drift between English and Russian unless the user explicitly requests a switch.
+- **Anti-Pattern #14 — Don't translate dish or menu names.** "Salmon Teriyaki" stays "Salmon Teriyaki" in a Russian session. "Loco Moco" stays "Loco Moco" in any language.
+- **Anti-Pattern #15 — Don't mid-message-drift between languages.** Session language is sticky per `communication_language`. Switching only on explicit user request.
+
+### Changed
+
+- **`SKILL.md` now fully in English.** Templates show English labels as the default; Russian forms appear only in the Localization table and in the Russian-variant block of the WRONG/RIGHT example pair. Examples 1–5 rewritten in English. All footer phrases, disclaimer, prose, and inline triggers are English-only in the methodology document.
+- **`README.md` fully rewritten in English.** All 10 live-example outputs converted to English. Added a dedicated **Bilingual support** section with a side-by-side Russian variant of the Loco Moco example for demonstration. Documentation page is now self-consistent in one language.
+- **Skill description (frontmatter)** updated to explicitly mention "Bilingual: runs entire sessions in English OR Russian (the user picks at onboarding). Dish/menu names in any language are preserved verbatim."
+- **Mode A / Mode B output templates** in `SKILL.md` now show English forms as primary, with a Russian-form block beside each for `communication_language: ru`.
+
+### Migration
+
+Existing `profile.md` from v3.1 doesn't have `communication_language` explicitly stored. On first v3.2 load, the skill detects the absence and asks the user once (defaulting to whichever language they used in the last session, but still confirming). After confirmation, the profile is rewritten with the new field. Auto-backup happens before the rewrite.
+
+### No methodology changes
+
+Scoring logic, the 5 heuristics, indulgence framework, drinks hierarchy, knowledge-base architecture, format compliance rules from v3.1 — all unchanged. v3.2 is a bilingual / documentation refactor on top of v3.1.
+
+---
+
 ## [3.1.0] — 2026-05-26
 
 ### Format compliance hardening
