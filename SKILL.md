@@ -348,6 +348,130 @@ Two orthogonal mode pairs:
 
 ---
 
+## ⚠️ STRICTLY REQUIRED OUTPUT FORMAT (mandatory)
+
+This is the most important section of the skill. **Every dish-evaluation response MUST use the template structure defined below.** Detailed templates with full field-by-field specification live further down (Mode A / Mode B / Mode C sections); this callout is the contract.
+
+### Mandatory elements per response
+
+**Mode A (single dish) — every response MUST contain, in this order:**
+
+1. `**Блюдо:**` / `**Dish:**` header with the dish name
+2. `**Уверенность:**` / `**Confidence:**` line with **all four aspects** — `макро [H/M/L] · готовка [H/M/L] · порция [H/M/L] · соус/состав [H/M/L]`
+3. A 2–4 sentence description of what is seen / parsed, including any heuristic triggers (trap detection, hidden fat, broth fork, etc.)
+4. `**Макро (диапазон):**` block with Calories / Protein / Fat (sat) / Carbs (sugar) as **ranges**, never single numbers
+5. `**Оценка:**` — a **markdown table** with columns: `Параметр | Значение | Балл | Бар`. Each parameter row has the actual value, the 1–10 score, and the `█████░░░░░ 🟢/🟡/🔴` bar. **Итого** is the final row.
+6. `**Вердикт:**` — **one** sentence with verdict + main reason
+7. `**Почему этот балл:**` — 2–3 sentences on main drivers (this is where reasoning lives — NOT in narrative prose elsewhere)
+8. `**Что можно изменить:**` — bullets (max 3) — only if 🟡 or 🔴
+9. `**Пересчёт с модификациями:**` — mandatory if modifications listed; format: `as served [X]/10 [color] → modified [Y]/10 [color]`
+10. `**Самое неопределённое:**` — single biggest swing factor
+11. `⚠️` disclaimer line — required on every red verdict
+12. Footer `*Оцениваю в изоляции — скажи, что ел до этого, если хочешь дневной баланс.*` — required in SINGLE MEAL mode
+13. Footer `*Скажи, если что-то распознал не так.*` — always required
+
+**Mode B (multi-dish ranking) — every response MUST contain:**
+
+1. A **markdown comparison table** with columns: `# | Блюдо | Цена | [Limiting macro] (10-cell bar) | Score`, sorted best→worst
+2. `## Топ-выбор — почему` section with 1–3 brief reasons
+3. `## Худшее — почему обойти` section with 1–3 brief reasons
+4. `## Что заказать` — one concrete recommendation
+5. (Middle yellow zone may be skipped unless user asks for details)
+
+In STRICT mode, if all dishes are 🟡/🔴 → no ranking, redirect with criteria.
+
+### Reasoning lives inside the template, never instead of it
+
+If you find yourself writing a paragraph that explains the verdict **without** using the parameter table — stop and restructure into the template. The "why" goes in `**Почему этот балл:**`, not above or below the structure.
+
+### WRONG vs RIGHT — visual contrast
+
+**❌ WRONG (do NOT do this — narrative drift):**
+
+```
+LOCO MOCO 🔴 2/10
+Что в миске: говяжья котлета, грибы, пашот-яйцо, мак-салат, грэви, вонтон-крисы.
+
+Почему красный, по твоим Primary:
+Жир на приём. Стекается четыре источника жира: котлета пан-фрай, мак-салат на майонезе,
+грэви на жире, вонтоны фритюр. Грубо 45–65 г жира на порцию, это >35 г → красная зона.
+Тип жира. Насыщенный говяжий + майонез + жир грэви, >12 г → красный.
+Готовка. Котлета пан-фрай (−2), вонтоны фритюр (−3). Двойной удар.
+
+Что заказать вместо: попроси grilled chicken без масла, грэви на сторону, без вонтонов,
+mac salad заменить на овощи.
+```
+
+This is **prose narrative** masquerading as analysis. Missing: confidence line, macro range block, parameter table, score bars, verdict line, structured "what to change", re-scoring delta, "most uncertain", disclaimer, footers. This format is **not acceptable**.
+
+**✅ RIGHT (mandatory template):**
+
+```
+**Блюдо:** Loco Moco
+**Уверенность:** макро M · готовка H · порция L · соус/состав L
+
+Говяжья котлета + рис + грибная грэви + пашот-яйцо + mac salad + вонтон-крисы.
+Триггеры heuristic'ов: #1 (mac salad — это майонез на макаронах, не салат), #2 (грэви на жире, вонтоны фритюр).
+
+**Макро (диапазон):**
+- Калории: 950–1180 kcal
+- Белок:   38–48g
+- Жир:     45–65g (насыщ. 16–24g)
+- Углеводы: 90–110g
+
+**Оценка:**
+
+| Параметр    | Значение           | Балл | Бар         |
+|-------------|--------------------|------|-------------|
+| Жир/приём   | 45–65g             | 1/10 | █░░░░░░░░░ 🔴 |
+| Насыщ. жир  | 16–24g             | 1/10 | █░░░░░░░░░ 🔴 |
+| Готовка     | пан-фрай + фритюр  | −3   | модификатор   |
+| **Итого**   | —                  | 1/10 | █░░░░░░░░░ 🔴 |
+
+**Вердикт:** не брать — четыре источника жира в одном приёме (котлета, mac salad на майонезе, грэви, вонтон-крисы), 2.5× превышение per-meal target [🔵 EASL].
+
+**Почему этот балл:** стекаются четыре независимых жировых источника, плюс готовка двойной удар (пан-фрай + фритюр). Любого одного хватило бы для жёлтого; вместе — красный по первому Primary параметру.
+
+**Что можно изменить:**
+- Plain steamed rice вместо garlic fried rice → −12g жира.
+- Убрать вонтон-крисы → −10g жира.
+- Grilled chicken breast вместо котлеты + грэви на сторону → −20g жира.
+
+**Пересчёт с модификациями:** as served 1/10 🔴 → modified (без crisps + grilled chicken + грэви на стороне + plain rice) 6/10 🟡.
+
+**Самое неопределённое:** объём грэви и заправки в mac salad (могут добавить ±10g жира).
+
+⚠️ Не медицинская рекомендация. При острых симптомах — к врачу.
+
+*Оцениваю в изоляции — скажи, что ел до этого, если хочешь дневной баланс.*
+
+*Скажи, если что-то распознал не так.*
+```
+
+The "why" reasoning still appears — but inside `**Почему этот балл:**`, not replacing the parameter table.
+
+### Checklist before sending any Mode A response
+
+- [ ] `**Блюдо:**` header present
+- [ ] `**Уверенность:**` line has all 4 aspects (макро · готовка · порция · соус/состав)
+- [ ] `**Макро (диапазон):**` block has Calories/Protein/Fat/Carbs **as ranges**
+- [ ] `**Оценка:**` is a **markdown table**, not bullets — with all four columns including bars
+- [ ] Every parameter row has a `█████░░░░░` bar
+- [ ] `**Итого**` row present in the table
+- [ ] `**Вердикт:**` is **one sentence**
+- [ ] `**Почему этот балл:**` present (2–3 sentences)
+- [ ] If 🟡 or 🔴 — `**Что можно изменить:**` bullets ≤3 + `**Пересчёт с модификациями:**` re-scoring delta line
+- [ ] `**Самое неопределённое:**` present
+- [ ] If 🔴 — `⚠️` disclaimer line present
+- [ ] Footer `*Оцениваю в изоляции...*` present (in SINGLE MEAL mode)
+- [ ] Footer `*Скажи, если что-то распознал не так.*` present
+
+If any box is unchecked → restructure before sending.
+
+See **Visual Output**, **Mode A**, **Mode B**, **Mode C** sections below for detailed field specification.
+
+---
+
 ## Reusable Evaluation Heuristics
 
 These are **condition-agnostic** detection patterns the engine always applies before scoring through the profile. They identify what's actually on the plate; the profile decides whether it's a problem.
@@ -647,9 +771,9 @@ For ranges (e.g. 32–44g), use the **upper bound** (worst-case): 32–44g → `
 
 ---
 
-## Single Dish Output Format (Mode A)
+## Mode A — Single Dish Output Format (MANDATORY TEMPLATE — never replace with prose)
 
-Use this **table layout** for every single-dish evaluation. Do not pad.
+This is the **only acceptable format** for single-dish evaluation. Every element below is required. The structure is a contract, not a suggestion. See the **STRICTLY REQUIRED OUTPUT FORMAT** callout above for the checklist and WRONG vs RIGHT contrast.
 
 ```
 **Блюдо:** [name]
@@ -705,9 +829,9 @@ Long clinical reasoning is shown **only on explicit request** — *"why"*, *"exp
 
 ---
 
-## Multiple Dishes Flow (Mode B)
+## Mode B — Multi-Dish Ranking (MANDATORY TEMPLATE — comparison table first, then prose sections)
 
-When a photo or text contains 2+ dishes, or the user asks *"compare / rank / what to order / top / what's best"*:
+When a photo or text contains 2+ dishes, or the user asks *"compare / rank / what to order / top / what's best"*. **Every Mode B response MUST start with the markdown comparison table.** A nice prose ranking with no table is a violation per Honesty Rule 13.
 
 1. Identify all dishes (use `cuisines/*.md` if a relevant file exists).
 2. Parse name + price + description where visible.
@@ -854,6 +978,7 @@ These cannot be overridden by the user.
 10. **Wellness-label skepticism.** *"Sugar-free / natural / protein / wellness / lite / clean / plant-based"* never automatically raise a score. Read the actual composition. See **Wellness-Label Skepticism** section.
 11. **Indulgence framework only in PRAGMATIC.** In STRICT mode, risk modulation for treats is disabled. Hard redirect only.
 12. **Cultural sensitivity.** No cuisine is "good" or "bad" in absolute terms — every cuisine has 🟢 / 🟡 / 🔴 options. Respect religious / ethical / cultural restrictions without judgment. Do not promote exclusion diets without a recorded medical reason in the profile.
+13. **Output format compliance is mandatory.** Mode A response MUST start with `**Блюдо:**` header and follow the full 13-element checklist (see *STRICTLY REQUIRED OUTPUT FORMAT*). Mode B response MUST start with the comparison table. Never narrate the analysis in prose where a template is specified — reasoning lives **inside** `**Почему этот балл:**`, not replacing the parameter table. Skipping the macro range, the parameter table, the bar visualization, the verdict line, the modifications block with re-scoring delta, the "most uncertain" line, the red-verdict disclaimer, or the mandatory footers is a violation **as serious as missing the red-verdict disclaimer or untagged health claims**. Format slip is not stylistic preference — it's a contract breach.
 
 ---
 
@@ -941,6 +1066,7 @@ When two referenced guidelines disagree, **say so**. Do not silently pick one.
 10. **Don't activate the indulgence framework in STRICT mode.** STRICT means redirect, not risk-modulate.
 11. **Don't quantify intake to the gram for users with ED-safe mode on.** Use ranges, soften framing.
 12. **Don't multi-user this skill.** One skill = one profile. For another person, install a separate skill instance with its own profile.md.
+13. **Don't drift into narrative prose for Mode A / Mode B outputs.** This is the most common failure mode in real use. Symptoms: title-with-color instead of `**Блюдо:**` header, narrative paragraphs replacing the parameter table, "почему красный" as prose instead of a single `**Вердикт:**` line + `**Почему этот балл:**` section, no `█████░░░░░` bars, no `**Макро (диапазон):**` block, no re-scoring delta after modifications, no `⚠️` disclaimer on red verdicts, no footers. **The template is the contract.** Reasoning content is excellent only when wrapped in the structure.
 
 ---
 

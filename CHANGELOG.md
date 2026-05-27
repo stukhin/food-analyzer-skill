@@ -6,6 +6,41 @@ Format: `## [version] — YYYY-MM-DD`
 
 ---
 
+## [3.1.0] — 2026-05-26
+
+### Format compliance hardening
+
+After real-use testing of v3.0 surfaced **narrative drift** in Claude.ai sessions (the skill applied the right heuristics but rendered outputs as prose instead of the specified Mode A / Mode B template), v3.1 makes output-format compliance a hard contract on par with the other Honesty Rules.
+
+### Added
+
+- **Honesty Rule 13 — Output format compliance is mandatory.** Mode A responses MUST start with `**Блюдо:**` header and follow the full 13-element checklist. Mode B responses MUST start with the comparison table. Narrative prose where a template is specified is treated as a contract breach, equivalent to missing the red-verdict disclaimer or making untagged health claims.
+- **Anti-Pattern #13 — Narrative drift in Mode A/B outputs.** Explicit documentation of the most common failure mode: title-with-color instead of `**Блюдо:**` header, paragraphs replacing the parameter table, no bars, no macro range block, no re-scoring delta, missing disclaimer/footers. "The template is the contract."
+- **STRICTLY REQUIRED OUTPUT FORMAT** callout near the top of `SKILL.md` (right after Modes of Use). Lists all mandatory Mode A elements as a numbered contract, with a WRONG vs RIGHT visual contrast pair using the Loco Moco example. Includes a pre-send checklist.
+- **Mode A and Mode B section headers** rewritten with explicit "MANDATORY TEMPLATE — never replace with prose" language to reinforce.
+
+### Changed
+
+- `SKILL.md` 1307 lines (was 1181).
+- `README.md` fully rewritten as a detailed showcase page with 10 text-based example outputs (onboarding, two Mode A examples, correction flow, PRAGMATIC Mode B ranking, STRICT Mode B redirect, indulgence framework, Daily Tracker, calibration log, Mode C skeleton). Replaces screenshot reliance with full markdown-block examples readers can study.
+
+### Diagnosis
+
+Real-use evidence: in v3.0 sessions on Claude.ai (loaded via Project Knowledge), the skill produced excellent content-level analysis (heuristics fired correctly: healthy-sounding traps, hidden fat, broth fork, cut discrimination), but dropped the structural template — no `**Блюдо:**` headers, no four-aspect confidence line, no `**Макро (диапазон):**` block, no parameter table, no `█████░░░░░` bars, no `**Вердикт:**` single-sentence line, no re-scoring delta, no `⚠️` disclaimer on red, no footers.
+
+Root cause analysis pointed to three factors:
+1. SKILL.md had grown to 1181 lines with the Output Format spec living mid-document.
+2. Format requirements were not represented in the Honesty Rules layer (where the model treats violations as hard breaches).
+3. No explicit WRONG vs RIGHT contrast existed — examples only showed the correct format, with no anti-example for the model to compare against.
+
+v3.1 addresses all three: format-as-a-hard-rule, prominent placement, WRONG/RIGHT contrast, and explicit anti-pattern.
+
+### No methodology changes
+
+Scoring logic, the 5 heuristics, indulgence framework, drinks hierarchy, knowledge-base architecture, profile schema — all unchanged from v3.0. v3.1 is a structural fix to enforcement, not a methodology shift.
+
+---
+
 ## [3.0.0] — 2026-05-24
 
 ### Major release — knowledge-base architecture
